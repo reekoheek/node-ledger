@@ -1,0 +1,29 @@
+<header class="ui-header">
+  <div class="ui-header__row">
+    <a class="ui-button ui-button--icon ui-drawer--handle" href="javascript:history.back()">
+      <i class="material-icons">arrow_back</i>
+    </a>
+    <span class="ui-header__title">Tunnel</span>
+    <span class="ui-spacer"></span>
+    <a class="ui-button ui-button--icon" class.hidden="[[parameters.id | not]]" (click)="deleteClicked(evt)">
+      <i class="material-icons">delete</i>
+    </a
+  </div>
+</header>
+
+<form class="ui-form" (submit)="submitted(evt)">
+  <ui-textfield label="Name" type="text" value="{{tunnel.name}}"></ui-textfield>
+  <ui-selectfield label="Server" value="{{tunnel.server}}" options="[[serverOptions]]"></ui-selectfield>
+  <ui-textfield label="Port" type="number" value="{{tunnel.port}}"></ui-textfield>
+  <ui-textfield label="Bind" type="text" value="{{tunnel.bind}}"></ui-textfield>
+
+  <button class="ui-button ui-button--colored ui-button--block">Save</button>
+</form>
+
+<div class="ui-padding" class.hidden="[[parameters.id | not]]">
+  <div>
+    Status: <span>[[tunnel.status]]</span>
+  </div>
+  <button class="ui-button ui-button--colored ui-button--block flex" class.hidden="[[tunnel.status]]" (click)="startClicked(evt)">Start</button>
+  <button class="ui-button ui-button--colored ui-button--block flex" class.hidden="[[tunnel.status | not]]" (click)="stopClicked(evt)">Stop</button>
+</div>

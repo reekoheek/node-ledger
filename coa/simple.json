@@ -1,0 +1,37 @@
+[
+  {
+    "code": "1000",
+    "cname": "ASSET",
+    "name": "Aktiva",
+    "children": [
+      {
+        "code": "1001",
+        "name": "Kas"
+      },
+      {
+        "code": "1002",
+        "name": "Bank"
+      }
+    ]
+  },
+  {
+    "code": "2000",
+    "cname": "LIABILITY",
+    "name": "Kewajiban"
+  },
+  {
+    "code": "3000",
+    "cname": "EQUITY",
+    "name": "Modal"
+  },
+  {
+    "code": "4000",
+    "cname": "INCOME",
+    "name": "Pendapatan"
+  },
+  {
+    "code": "5000",
+    "cname": "EXPENSE",
+    "name": "Beban"
+  }
+]
