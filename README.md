@@ -1,25 +1,37 @@
 # node-account
 
-## Accounts
+## API
 
-### GET /account
+### all
+
+### init
+
+### post
+
+### getTransactions
+
+## REST
+
+### Accounts
+
+#### GET /account
 
 List all accounts
 
-### GET /account/null/init
+#### GET /account/null/init
 
 Initialize chart of accounts
 
-### GET /account/{id}/transaction
+#### GET /account/{id}/transaction
 
 List all transactions of account
 
-### GET /account/{id} # not yet
+#### GET /account/{id} # not yet
 
 Get account detail
 
-## Transactions
+### Transactions
 
-### GET /transaction
+#### GET /transaction
 
 List all transactions
