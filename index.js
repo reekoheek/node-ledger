@@ -1,7 +1,7 @@
 const Manager = require('node-norm');
 
 class Ledger {
-  constructor ({ manager, connections }) {
+  constructor ({ manager, connections, prefix = '' } = {}) {
     this.manager = manager || new Manager({ connections });
   }
 
