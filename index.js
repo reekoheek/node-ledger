@@ -1,60 +1,68 @@
 const Manager = require('node-norm');
+const Account = require('./account');
+const Transaction = require('./transaction');
 
 class Ledger {
-  constructor ({ manager, connections, prefix = '' } = {}) {
+  constructor ({ manager, connections, prefix = '', classes } = {}) {
+    this.prefix = prefix;
     this.manager = manager || new Manager({ connections });
+    this.classes = Object.assign({
+      asset: 'debit',
+      liability: 'credit',
+      equity: 'credit',
+      income: 'credit',
+      expense: 'debit',
+    }, classes);
   }
 
-  async all () {
-    return await this.manager.find('account').sort({ code: 1 }).all();
-  }
-
-  async init (coa) {
-    await this.manager.find('account').delete();
+  async initAccounts (coa) {
+    await this._rawFind('account').delete();
 
     await Promise.all(coa.map(account => this._populateAccount(account)));
   }
 
-  async post ({ date, note = '', entries = [] }) {
-    if (!date) {
-      throw new Error('Value date not found');
+  async getAccounts () {
+    let rows = await this._rawFind('account').sort({ code: 1 }).all();
+    return rows.map(row => new Account(this, row));
+  }
+
+  async getAccount (code) {
+    let row = await this._rawFind('account', { code }).single();
+    if (!row) {
+      return;
     }
 
-    if (!entries.length) {
-      throw new Error('Empty entries');
+    return new Account(this, row);
+  }
+
+  kindOf (key) {
+    let kind = this.classes[key];
+    if (!kind) {
+      throw new Error(`Unknown account class '$key'`);
     }
+    return kind;
+  }
 
-    let imbalance = entries.reduce((result, entry) => {
-      let { debit = 0, credit = 0 } = entry;
-      result += debit - credit;
-      return result;
-    }, 0);
+  newAccount (row) {
+    return new Account(this, row);
+  }
 
-    let postedTime = new Date();
+  newTransaction (row) {
+    return new Transaction(this, row);
+  }
 
-    if (imbalance) {
-      throw new Error('Transaction is imbalance');
-    }
+  async post (row) {
+    let tx = this.newTransaction(row);
 
-    let collection = this.manager.find('transaction');
-
-    entries.forEach(entry => {
-      let { code, debit, credit, ref } = entry;
-      let row = { note, code, debit, credit, ref };
-      row.value_date = date;
-      row.posted_time = postedTime;
-      collection = collection.insert(row);
-    });
-
-    await collection.save();
+    return await tx.save();
   }
 
   async getTransactions (code) {
     let txs;
     if (code) {
-      txs = await this.manager.find('transaction', { code }).all();
+      txs = await this._rawFind('transaction', { code }).all();
     } else {
-      txs = await this.manager.find('transaction').all();
+      txs = await this._rawFind('transaction').all();
     }
 
     return txs;
@@ -62,10 +70,14 @@ class Ledger {
 
   async _populateAccount (account, parentAccount) {
     let { code, cname = parentAccount.cname, name, children = [] } = account;
-    let parent = parentAccount ? parentAccount.id : null;
-    let [ insertedAccount ] = await this.manager.find('account').insert({ code, cname, name, parent }).save();
+    let parent = parentAccount ? parentAccount.code : null;
+    let [ insertedAccount ] = await this._rawFind('account').insert({ code, cname, name, parent }).save();
 
     await Promise.all(children.map(childAccount => this._populateAccount(childAccount, insertedAccount)));
+  }
+
+  _rawFind (name, opts) {
+    return this.manager.find(`${this.prefix}${name}`, opts);
   }
 }
 

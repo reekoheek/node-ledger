@@ -1,5 +1,4 @@
 const BaseBundle = require('./base');
-const parse = require('co-body');
 
 class TransactionBundle extends BaseBundle {
   constructor (config) {
@@ -14,7 +13,7 @@ class TransactionBundle extends BaseBundle {
   }
 
   async create (ctx) {
-    const tx = await parse.json(ctx);
+    const tx = await ctx.parse();
 
     return this.ledger.post(tx);
   }

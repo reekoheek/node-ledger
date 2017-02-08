@@ -1,7 +1,7 @@
 [
   {
     "code": "1000",
-    "cname": "ASSET",
+    "cname": "asset",
     "name": "Aktiva",
     "children": [
       {
@@ -16,22 +16,22 @@
   },
   {
     "code": "2000",
-    "cname": "LIABILITY",
+    "cname": "liability",
     "name": "Kewajiban"
   },
   {
     "code": "3000",
-    "cname": "EQUITY",
+    "cname": "equity",
     "name": "Modal"
   },
   {
     "code": "4000",
-    "cname": "INCOME",
+    "cname": "income",
     "name": "Pendapatan"
   },
   {
     "code": "5000",
-    "cname": "EXPENSE",
+    "cname": "expense",
     "name": "Beban"
   }
 ]

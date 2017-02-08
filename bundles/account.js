@@ -1,11 +1,11 @@
 const BaseBundle = require('./base');
-const parse = require('co-body');
 
 class AccountBundle extends BaseBundle {
   constructor (config) {
     super(config);
 
     this.get('/', this.index.bind(this));
+    this.get('/{id}/balance', this.balance.bind(this));
     this.get('/{id}/transaction', this.transaction.bind(this));
     this.post('/null/init', this.init.bind(this));
   }
@@ -19,8 +19,7 @@ class AccountBundle extends BaseBundle {
   }
 
   async init (ctx) {
-    const coa = await parse.json(ctx);
-    return this.ledger.init(coa);
+    return this.ledger.init(await ctx.parse());
   }
 }
 

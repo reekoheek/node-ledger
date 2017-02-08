@@ -22,11 +22,11 @@ List all accounts
 
 Initialize chart of accounts
 
-#### GET /account/{id}/transaction
+#### GET /account/{code}/transaction
 
 List all transactions of account
 
-#### GET /account/{id} # not yet
+#### GET /account/{code} # not yet
 
 Get account detail
 
