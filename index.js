@@ -77,7 +77,7 @@ class Ledger {
   }
 
   _rawFind (name, opts) {
-    return this.manager.find(`${this.prefix}${name}`, opts);
+    return this.manager.factory(`${this.prefix}${name}`).find(opts);
   }
 }
 

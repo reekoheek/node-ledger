@@ -31,9 +31,7 @@ class Account extends Base {
 
       this.sync(result);
     } else {
-      let [ result ] = await this.$ledger._rawFind('account', { id: this.id }).set(this).save();
-
-      this.sync(result);
+      await this.$ledger._rawFind('account', { id: this.id }).set(this).save();
     }
   }
 
