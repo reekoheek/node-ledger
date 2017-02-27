@@ -1,13 +1,9 @@
 const Base = require('./base');
+const assert = require('assert');
 
 /**
  * Account
- *
- * Properties:
- * - code
- * - cname
- * - name
- * - parent
+ * Signature: [ { code, cname, name, kind, parent? } ]
  */
 class Account extends Base {
   get balance () {
@@ -15,18 +11,22 @@ class Account extends Base {
   }
 
   async save () {
-    if (!this.id) {
-      if (this.parent) {
-        let parent = await this.$ledger._rawFind('account', { code: this.parent }).single();
-        if (parent) {
-          this.cname = parent.cname;
-        } else {
-          this.parent = undefined;
-        }
+    if (this.parent) {
+      let parent = await this.$ledger._rawFind('account', { code: this.parent }).single();
+      if (parent) {
+        this.cname = parent.cname;
+      } else {
+        this.parent = undefined;
       }
+    }
 
-      this.kind = this.$ledger.kindOf(this.cname);
+    assert(this.code, 'Code is required');
+    assert(this.name, 'Name is required');
+    assert(this.cname, 'CName is required');
 
+    this.kind = this.$ledger.kindOf(this.cname);
+
+    if (!this.id) {
       let [ result ] = await this.$ledger._rawFind('account').insert(this).save();
 
       this.sync(result);

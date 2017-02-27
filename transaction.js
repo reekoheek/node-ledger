@@ -1,13 +1,10 @@
 const Base = require('./base');
 const Entry = require('./entry');
+const TransactionError = require('./errors/transaction');
 
 /**
  * Transaction
- *
- * Properties:
- * - date
- * - note
- * - entries
+ * Signature: { date, note, entries: [ Entry ] }
  */
 class Transaction extends Base {
   get balance () {
@@ -53,15 +50,15 @@ class Transaction extends Base {
 
   async save () {
     if (!this.date) {
-      throw new Error('Value date not found');
+      throw new TransactionError('Value date not found');
     }
 
     if (!this.entries || !this.entries.length) {
-      throw new Error('Empty entries');
+      throw new TransactionError('Empty entries');
     }
 
     if (this.balance) {
-      throw new Error('Transaction is imbalance');
+      throw new TransactionError('Transaction is imbalance');
     }
 
     try {

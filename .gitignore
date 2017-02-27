@@ -1,6 +1,5 @@
+.tmp
 .DS_Store
-npm-debug.log
 
 node_modules
-.tmp
-ui/lib
+npm-debug.log

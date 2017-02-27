@@ -1,5 +1,9 @@
 const Base = require('./base');
 
+/**
+ * Entry
+ * Signature: { code, debit?, credit? }
+ */
 class Entry extends Base {
   async lock () {
     let account = await this.$ledger.getAccount(this.code);

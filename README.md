@@ -1,37 +1,77 @@
-# node-account
+# node-ledger
+
+## Norm configuration
+
+```javascript
+{
+  connections: [
+    {
+      ...
+      schemas: [
+        {
+          name: 'account',
+          fields: [
+            new NString('code').filter('required'),
+            new NString('name').filter('required'),
+            new NString('cname').filter('required'),
+            new NString('kind').filter('required'),
+            new NString('parent').filter('required'),
+            new NInteger('debit').filter('required'),
+            new NInteger('credit').filter('required'),
+          ],
+        },
+        {
+          name: 'transaction',
+          fields: [
+            new NString('code').filter('required'),
+            new NString('date').filter('required'),
+            new NDatetime('created_time').filter('required'),
+            new NInteger('debit').filter('required'),
+            new NInteger('credit').filter('required'),
+          ],
+        },
+      ],
+    },
+  ],
+}
+```
 
 ## API
 
-### all
+### #initAccounts(coa)
 
-### init
+Arguments:
 
-### post
+- CoA `[ { code, name, cname, kind, parent? } ]`
 
-### getTransactions
+### #getAccounts()
 
-## REST
+### #getAccount(code)
 
-### Accounts
+Arguments:
 
-#### GET /account
+- code `string`
 
-List all accounts
+### #newAccount(row)
 
-#### GET /account/null/init
+Arguments:
 
-Initialize chart of accounts
+- row `{ code, name, cname, kind, parent? }`
 
-#### GET /account/{code}/transaction
+### #newTransaction(row)
 
-List all transactions of account
+Arguments:
 
-#### GET /account/{code} # not yet
+- row `object`
 
-Get account detail
+### post(row)
 
-### Transactions
+Arguments:
 
-#### GET /transaction
+- row `object`
 
-List all transactions
+### getTransactions(code)
+
+Arguments:
+
+- code `string`
