@@ -1,5 +1,5 @@
 const Base = require('./base');
-const assert = require('assert');
+const LedgerError = require('./error');
 
 /**
  * Account
@@ -20,19 +20,24 @@ class Account extends Base {
       }
     }
 
-    assert(this.code, 'Code is required');
-    assert(this.name, 'Name is required');
-    assert(this.cname, 'CName is required');
+    if (!this.code) throw new LedgerError('Code is required');
+    if (!this.name) throw new LedgerError('Name is required');
+    if (!this.cname) throw new LedgerError('CName is required');
 
     this.kind = this.$ledger.kindOf(this.cname);
 
-    if (!this.id) {
-      let [ result ] = await this.$ledger._rawFind('account').insert(this).save();
-
-      this.sync(result);
-    } else {
-      await this.$ledger._rawFind('account', { id: this.id }).set(this).save();
+    if (this.id) {
+      let { affected } = await this.$ledger._rawFind('account', { id: this.id }).set(this).save();
+      return affected > 0;
     }
+
+    let { inserted, rows: [ row ] } = await this.$ledger._rawFind('account').insert(this).save();
+    if (inserted > 0) {
+      this.sync(row);
+      return true;
+    }
+
+    return false;
   }
 
   putEntry (entry) {

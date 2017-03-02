@@ -1,8 +1,8 @@
-class TransactionError extends Error {
+class ValidationError extends Error {
   constructor (message) {
     super(message);
     this.status = 400;
   }
 }
 
-module.exports = TransactionError;
+module.exports = ValidationError;

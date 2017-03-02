@@ -1,6 +1,6 @@
 const Base = require('./base');
 const Entry = require('./entry');
-const TransactionError = require('./errors/transaction');
+const LedgerError = require('./error');
 
 /**
  * Transaction
@@ -50,15 +50,15 @@ class Transaction extends Base {
 
   async save () {
     if (!this.date) {
-      throw new TransactionError('Value date not found');
+      throw new LedgerError('Value date not found');
     }
 
     if (!this.entries || !this.entries.length) {
-      throw new TransactionError('Empty entries');
+      throw new LedgerError('Empty entries');
     }
 
     if (this.balance) {
-      throw new TransactionError('Transaction is imbalance');
+      throw new LedgerError('Transaction is imbalance');
     }
 
     try {

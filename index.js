@@ -115,11 +115,19 @@ class Ledger {
   }
 
   async _populateAccount (account, parentAccount) {
-    let { code, cname = parentAccount.cname, name, children = [] } = account;
-    let parent = parentAccount ? parentAccount.code : null;
-    let [ insertedAccount ] = await this._rawFind('account').insert({ code, cname, name, parent }).save();
+    let { children = [] } = account;
 
-    await Promise.all(children.map(childAccount => this._populateAccount(childAccount, insertedAccount)));
+    let copiedParent = Object.assign({}, parentAccount);
+    delete copiedParent.id;
+    delete copiedParent.parent;
+
+    let copiedAccount = Object.assign({}, copiedParent, account);
+    delete copiedAccount.children;
+
+    let newAccount = this.newAccount(copiedAccount);
+    await newAccount.save();
+
+    await Promise.all(children.map(childAccount => this._populateAccount(childAccount, newAccount)));
   }
 
   _rawFind (name, opts) {
