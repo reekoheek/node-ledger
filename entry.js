@@ -1,24 +1,44 @@
-const Base = require('./base');
+class Entry {
+  constructor ({ trace, code, db = 0, cr = 0 }, adapter) {
+    if (!code) {
+      throw new Error('Undefined account');
+    }
 
-/**
- * Entry
- * Signature: { code, debit?, credit? }
- */
-class Entry extends Base {
-  async lock () {
-    let account = await this.$ledger.getAccount(this.code);
+    if ((db <= 0 && cr <= 0) || !((db <= 0 && cr > 0) || (cr <= 0 && db > 0))) {
+      throw new Error('DBCR must be exclusive');
+    }
+
+    Object.defineProperties(this, {
+      adapter: {
+        get: () => adapter,
+      },
+    });
+
+    this.trace = trace;
+    this.code = code;
+    this.db = db;
+    this.cr = cr;
+  }
+
+  get currency () {
+    if (!this.account) {
+      throw new Error('Not validate yet');
+    }
+
+    return this.account.currency;
+  }
+
+  async validate () {
+    let account = await this.getAccount();
     if (!account) {
-      throw new Error(`Account '${this.code}' not found`);
+      throw new Error('Invalid account');
     }
   }
 
-  async unlock () {
-    let account = await this.$ledger.getAccount(this.code);
-
-    await account.putEntry(this).save();
-
-    this.balance = account.balance;
+  async getAccount () {
+    this.account = await this.adapter.getAccount(this.code);
+    return this.account;
   }
 }
 
-module.exports = Entry;
+module.exports = { Entry };

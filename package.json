@@ -1,21 +1,28 @@
 {
   "name": "node-ledger",
-  "version": "1.0.0",
-  "description": "Node.JS Accounting Ledger System",
+  "version": "0.1.0",
+  "description": "Simple library to work with accounting ledger.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --harmony-async-await"
+    "lint": "eslint .",
+    "test": "mocha test/**",
+    "precommit": "npm run lint && npm test",
+    "prepush": "npm run lint && npm test"
   },
-  "author": "Ganesha <reekoheek@gmail.com>",
+  "author": "Ganesha <reekoheek@gmail.com> (http://sagara.id)",
   "license": "MIT",
-  "dependencies": {
-    "node-norm": "xinix-technology/node-norm#master"
-  },
   "devDependencies": {
-    "eslint": "^3.14.0",
-    "eslint-config-standard": "^6.2.1",
-    "eslint-plugin-promise": "^3.4.0",
-    "eslint-plugin-standard": "^2.0.1",
-    "mocha": "^3.2.0"
+    "babel-eslint": "^8.2.3",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-config-xinix": "^1.0.4",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "husky": "^0.14.3"
+  },
+  "dependencies": {
+    "uuid": "^3.2.1"
   }
 }

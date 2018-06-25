@@ -1,77 +1,141 @@
 # node-ledger
 
-## Norm configuration
+Simple library to work with accounting ledger.
 
-```javascript
-{
-  connections: [
+## Features
+
+- Adapters
+- Double entry
+- Multi currencies
+
+## Quickstart
+
+```js
+const { Ledger } = require('node-ledger')
+
+(async () => {
+  let ledger = new Ledger(); // default using Memory adapter
+
+  await ledger.init([
     {
-      ...
-      schemas: [
-        {
-          name: 'account',
-          fields: [
-            new NString('code').filter('required'),
-            new NString('name').filter('required'),
-            new NString('cname').filter('required'),
-            new NString('kind').filter('required'),
-            new NString('parent').filter('required'),
-            new NInteger('debit').filter('required'),
-            new NInteger('credit').filter('required'),
-          ],
-        },
-        {
-          name: 'transaction',
-          fields: [
-            new NString('code').filter('required'),
-            new NString('date').filter('required'),
-            new NDatetime('created_time').filter('required'),
-            new NInteger('debit').filter('required'),
-            new NInteger('credit').filter('required'),
-          ],
-        },
+      code: 'assets',
+      children: [
+        { code: 'assets:cash', currency: 'USD' },
+        { code: 'assets:bank', currency: 'USD' },
       ],
     },
-  ],
-}
+    {
+      code: 'equity',
+      children: [
+        { code: 'equity:initial', currency: 'USD' },
+      ],
+    },
+    {
+      code: 'liabilities',
+      children: [
+        { code: 'liabilities:debt', currency: 'USD' },
+      ],
+    },
+    {
+      code: 'income',
+      children: [
+        { code: 'income:trading', currency: 'USD' },
+      ],
+    },
+    {
+      code: 'expenses',
+      children: [
+        { code: 'expenses:purchasing', currency: 'USD' },
+      ],
+    },
+  ]);
+
+  // Got initial capital for your business
+  await ledger.post({
+    date: new Date(),
+    desc: 'Initial capital',
+    entries: [
+      { code: 'assets:bank', db: 1000 },
+      { code: 'equity:initial', cr: 1000 },
+    ],
+  });
+
+  // Purchasing items
+  await ledger.post({
+    date: new Date(),
+    desc: 'Purchase items',
+    entries: [
+      { code: 'liability:debt', cr: 150 },
+      { code: 'expenses:purchasing', db: 150 },
+    ],
+  });
+
+  // Get bank account
+  let bank = await ledger.getAccount('assets:bank');
+
+  // Get bank balance
+  let { db, cr } = await bank.getBalance();
+
+  // Get transactions of bank
+  let txs = await bank.getTransactions();
+
+  // Get all transactions happened in your business
+  let txs = await ledger.getTransactions();
+})();
 ```
 
 ## API
 
-### #initAccounts(coa)
+### Ledger
 
-Arguments:
+`Ledger` is the main class you would use. Ledger is a root account (extended from
+`Account`), so methods apply to account are apply to this class also.
 
-- CoA `[ { code, name, cname, kind, parent? } ]`
+`Ledger({ adapter = new Memory() } = {})`
 
-### #getAccounts()
+`async Ledger#init (coa = [])`
 
-### #getAccount(code)
+`async Ledger#post ({ date = new Date(), desc = '', entries = [] })`
 
-Arguments:
+`async Ledger#getAccount (code)`
 
-- code `string`
+`async Ledger#getTransactions ()`
 
-### #newAccount(row)
+`Ledger` implement `#getTransactions()` differently from `Account`. Method will
+return all transactions happened.
 
-Arguments:
+### Account
 
-- row `{ code, name, cname, kind, parent? }`
+`Account({ code, currency = '', parent } = {})`
 
-### #newTransaction(row)
+`async Account#addChild (account)`
 
-Arguments:
+`async Account#removeChild (account)`
 
-- row `object`
+`async Account#getParent ()`
 
-### post(row)
+`async Account#getChild (code)`
 
-Arguments:
+`async Account#getChildren ()`
 
-- row `object`
+`async Account#getTransactions ()`
 
-### getTransactions(code)
+`async Account#getBalance ()`
 
-Arguments:
+## How to create adapter
 
-- code `string`
+Implement class with several methods as follow:
+
+`#connectAccount ({ code, currency, parent })`
+
+`#disconnectAccount ({ code })`
+
+`#getAccount (code)`
+
+`#getAccountsByParent (parent)`
+
+`#post ({ trace, posted, date, desc, entries })`
+
+`#getTransactions ({ code } = {})`
+
+`#getBalance (code)`

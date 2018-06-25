@@ -1,81 +1,50 @@
-const Base = require('./base');
-const Entry = require('./entry');
-const LedgerError = require('./error');
+const { Entry } = require('./entry');
+const uuidv1 = require('uuid/v1');
 
-/**
- * Transaction
- * Signature: { date, note, entries: [ Entry ] }
- */
-class Transaction extends Base {
-  get balance () {
-    return this.entries.reduce((result, entry) => {
-      let { debit = 0, credit = 0 } = entry;
-      result += debit - credit;
-      return result;
-    }, 0);
-  }
+class Transaction {
+  constructor ({ trace = uuidv1(), date, desc = '', entries = [], posted } = {}, adapter) {
+    date = date || new Date();
+    if (date instanceof Date === false) {
+      date = new Date(date);
+    }
 
-  sync (row = {}) {
-    let { entries = [] } = row;
-    delete row.entries;
-
-    super.sync(row);
-
-    this.entries = entries.map(entry => new Entry(this.$ledger, entry));
-  }
-
-  lock () {
-    return Promise.all(this.entries.map(entry => entry.lock()));
-  }
-
-  unlock () {
-    return Promise.all(this.entries.map(entry => entry.unlock()));
-  }
-
-  async persist () {
-    let collection = this.$ledger._rawFind('transaction');
-
-    let now = new Date();
-
-    this.entries.forEach(entry => {
-      Object.assign(entry, {
-        date: this.date,
-        created_time: now,
-      });
-      collection = collection.insert(entry);
+    Object.defineProperties(this, {
+      adapter: { get: () => adapter },
     });
 
-    await collection.save();
+    this.trace = trace;
+    this.posted = posted;
+    this.date = date;
+    this.desc = desc;
+    this.entries = entries.map(({ code, db, cr }) => new Entry({ trace, code, db, cr }, adapter));
   }
 
-  async save () {
-    if (!this.date) {
-      throw new LedgerError('Value date not found');
+  async validate () {
+    if (this.entries.length < 2) {
+      throw new Error('Invalid entries');
     }
 
-    if (!this.entries || !this.entries.length) {
-      throw new LedgerError('Empty entries');
+    let sums = [];
+    for (let entry of this.entries) {
+      await entry.validate();
+
+      sums[entry.currency] = (sums[entry.currency] || 0) + entry.db - entry.cr;
     }
 
-    if (this.balance) {
-      throw new LedgerError('Transaction is imbalance');
-    }
-
-    try {
-      await this.lock();
-      await this.persist();
-      await this.unlock();
-
-      return this;
-    } catch (err) {
-      try {
-        await this.unlock();
-      } catch (err) {
-        console.error(err);
+    for (let currency in sums) {
+      if (sums[currency] !== 0) {
+        throw new Error(`Imbalance DBCR, ${currency}`);
       }
-      throw err;
     }
+  }
+
+  async post () {
+    await this.validate();
+
+    this.posted = new Date();
+
+    await this.adapter.post(this);
   }
 }
 
-module.exports = Transaction;
+module.exports = { Transaction };

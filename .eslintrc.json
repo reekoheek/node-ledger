@@ -1,13 +1,8 @@
 {
-  "extends": "standard",
-  "installedESLint": true,
-  "plugins": [
-    "standard",
-    "promise"
-  ],
-  "rules": {
-    "semi": ["error", "always"],
-    "comma-dangle": ["error", "always-multiline"],
-    "require-await": ["error"]
+  "parser": "babel-eslint",
+  "extends": "xinix",
+  "env": {
+    "node": true,
+    "mocha": true
   }
 }
