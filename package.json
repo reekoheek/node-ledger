@@ -11,6 +11,10 @@
   },
   "author": "Ganesha <reekoheek@gmail.com> (http://sagara.id)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reekoheek/node-ledger.git"
+  },
   "devDependencies": {
     "babel-eslint": "^8.2.3",
     "eslint": "^4.19.1",
