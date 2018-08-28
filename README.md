@@ -16,7 +16,7 @@ const { Ledger } = require('node-ledger')
 (async () => {
   let ledger = new Ledger(); // default using Memory adapter
 
-  await ledger.init([
+  await ledger.populate([
     {
       code: 'assets',
       children: [
@@ -77,10 +77,10 @@ const { Ledger } = require('node-ledger')
   let { db, cr } = await bank.getBalance();
 
   // Get transactions of bank
-  let txs = await bank.getTransactions();
+  let entries = await bank.getEntries();
 
   // Get all transactions happened in your business
-  let txs = await ledger.getTransactions();
+  let entries = await ledger.getEntries();
 })();
 ```
 
@@ -95,14 +95,14 @@ const { Ledger } = require('node-ledger')
 
 `async Ledger#init (coa = [])`
 
-`async Ledger#post ({ date = new Date(), desc = '', entries = [] })`
+`async Ledger#post ({ date = new Date(), posted, desc = '', entries = [ { code, db, cr } ] })`
 
 `async Ledger#getAccount (code)`
 
-`async Ledger#getTransactions ()`
+`async Ledger#getEntries ()`
 
-`Ledger` implement `#getTransactions()` differently from `Account`. Method will
-return all transactions happened.
+`Ledger` implement `#getEntries()` differently from `Account`. Method will
+return all entries happened.
 
 ### Account
 
@@ -126,16 +126,16 @@ return all transactions happened.
 
 Implement class with several methods as follow:
 
-`#connectAccount ({ code, currency, parent })`
+`#_connect ({ code, currency, parent })`
 
-`#disconnectAccount ({ code })`
+`#_disconnect ({ code })`
 
-`#getAccount (code)`
+`#_get (code)`
 
-`#getAccountsByParent (parent)`
+`#_findByParent (parent)`
 
-`#post ({ trace, posted, date, desc, entries })`
+`#_post ({ trace, posted, date, desc, entries })`
 
-`#getTransactions ({ code } = {})`
+`#_transactions ({ code } = {})`
 
-`#getBalance (code)`
+`#_balance (code)`

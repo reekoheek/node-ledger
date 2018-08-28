@@ -21,8 +21,8 @@ describe('Transaction', () => {
       let date = new Date();
       let desc = 'foo';
       let tx = new Transaction({ date, desc });
-      assert.equal(date, tx.date);
-      assert.equal(desc, tx.desc);
+      assert.strictEqual(date, tx.date);
+      assert.strictEqual(desc, tx.desc);
     });
   });
 
@@ -78,31 +78,6 @@ describe('Transaction', () => {
           throw err;
         }
       }
-    });
-  });
-
-  describe('#post()', () => {
-    it('insert entries', async () => {
-      adapter.accounts.push({ code: 'cash', currency: 'IDR' });
-      adapter.accounts.push({ code: 'income', currency: 'IDR' });
-
-      let tx = new Transaction({
-        entries: [
-          { code: 'cash', db: 100 },
-          { code: 'income', cr: 100 },
-        ],
-      }, adapter);
-
-      assert(tx.trace);
-      assert(tx.date instanceof Date);
-      assert(!tx.posted);
-
-      await tx.post();
-
-      assert(tx.posted instanceof Date);
-
-      assert.equal(adapter.txs.length, 1);
-      assert.equal(adapter.entries.length, 2);
     });
   });
 });

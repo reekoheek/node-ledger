@@ -36,7 +36,7 @@ class Entry {
   }
 
   async getAccount () {
-    this.account = await this.adapter.getAccount(this.code);
+    this.account = await this.adapter._get(this.code);
     return this.account;
   }
 }
