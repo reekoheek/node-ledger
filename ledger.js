@@ -1,27 +1,18 @@
-const assert = require('assert');
 const Memory = require('./adapters/memory');
 const { Account } = require('./account');
 const { Transaction } = require('./transaction');
 
-class Ledger extends Account {
-  constructor (adapter = new Memory()) {
-    super({ code: 'root' }, adapter);
-
-    this.initialized = false;
+class Ledger {
+  constructor ({ adapter = new Memory() } = {}) {
+    Object.defineProperty(this, 'adapter', {
+      configurable: true,
+      get: () => adapter,
+    });
   }
 
-  async init (coa = []) {
-    assert(!this.initialized, 'Already initialized');
-
-    this.initialized = true;
-    await this.adapter.connectAccount(this);
-    await this._insertAccounts(this, coa);
-  }
-
-  async destroy () {
-    assert(this.initialized, 'Uninitialized');
-    await this.adapter.disconnectAccount(this);
-    this.initialized = false;
+  async populate (accounts = []) {
+    // await this.adapter._connect(this);
+    await this.insertAccounts(this, accounts);
   }
 
   async post (tx) {
@@ -29,11 +20,11 @@ class Ledger extends Account {
       tx = new Transaction(tx, this.adapter);
     }
     await tx.validate();
-    await this.adapter.post(tx);
+    await this.adapter._post(tx);
   }
 
   async getAccount (code) {
-    let rawAccount = await this.adapter.getAccount(code);
+    let rawAccount = await this.adapter._get(code);
     if (!rawAccount) {
       return;
     }
@@ -41,21 +32,19 @@ class Ledger extends Account {
     return new Account(rawAccount, this.adapter);
   }
 
-  async getTransactions () {
-    let txs = await this.adapter.getTransactions();
-    return Promise.all(txs.map(tx => new Transaction(tx, this.adapter)));
+  getEntries () {
+    return this.adapter._entries();
   }
 
-  async _insertAccounts (parent, accounts) {
-    if (!accounts.length) {
-      return;
-    }
-
+  async insertAccounts (parent, accounts = []) {
     for (let def of accounts) {
       let account = new Account(def);
-      await this.addChild(account);
+
+      account.parent = parent.code || '';
+      await this.adapter._connect(account);
+
       if (def.children && def.children.length) {
-        await this._insertAccounts(account, def.children);
+        await this.insertAccounts(account, def.children);
       }
     }
   }

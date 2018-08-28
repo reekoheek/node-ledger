@@ -11,14 +11,14 @@ describe('Account', () => {
 
   async function createAccount (code) {
     let parent = new Account({ code }, adapter);
-    await adapter.connectAccount(parent);
+    await adapter._connect(parent);
     return parent;
   }
 
   describe('constructor', () => {
     it('define code', () => {
       let account = new Account({ code: 'asset' });
-      assert.equal(account.code, 'asset');
+      assert.strictEqual(account.code, 'asset');
     });
   });
 
@@ -29,7 +29,7 @@ describe('Account', () => {
 
       await parent.addChild(child);
 
-      assert.equal(adapter.accounts.length, 2);
+      assert.strictEqual(adapter.accounts.length, 2);
     });
 
     it('disconnect account from earlier parent first', () => {
@@ -49,7 +49,7 @@ describe('Account', () => {
       await parent.addChild(child);
       await parent.removeChild(child);
 
-      assert.equal(adapter.accounts.length, 1);
+      assert.strictEqual(adapter.accounts.length, 1);
     });
   });
 
@@ -73,13 +73,13 @@ describe('Account', () => {
 
       let cashAccount = await parent.getChild('asset:cash');
       assert(cashAccount instanceof Account);
-      assert.equal(cashAccount.code, child.code);
-      assert.equal(cashAccount.parent, 'asset');
+      assert.strictEqual(cashAccount.code, child.code);
+      assert.strictEqual(cashAccount.parent, 'asset');
 
       let bankAccount = await parent.getChild('asset:bank');
       assert(bankAccount instanceof Account);
-      assert.equal(bankAccount.code, child2.code);
-      assert.equal(bankAccount.parent, 'asset');
+      assert.strictEqual(bankAccount.code, child2.code);
+      assert.strictEqual(bankAccount.parent, 'asset');
     });
   });
 
@@ -90,15 +90,15 @@ describe('Account', () => {
       await parent.addChild(new Account({ code: 'asset:bank' }));
 
       let accounts = await parent.getChildren();
-      assert.equal(accounts.length, 2);
+      assert.strictEqual(accounts.length, 2);
     });
   });
 
-  describe('#getTransactions()', () => {
-    it('return all account transactions', async () => {
+  describe('#getEntries()', () => {
+    it('return all account entries', async () => {
       let ledger = new Ledger();
 
-      await ledger.init([
+      await ledger.populate([
         { code: 'cash' },
         { code: 'equity' },
         { code: 'expenses' },
@@ -128,10 +128,9 @@ describe('Account', () => {
         ],
       });
 
-      let account = await ledger.getChild('equity');
-      let txs = await account.getTransactions();
-      assert.equal(txs.length, 1);
-      assert.equal(txs[0].entries.length, 1);
+      let account = await ledger.getAccount('equity');
+      let entries = await account.getEntries();
+      assert.strictEqual(entries.length, 1);
     });
   });
 
@@ -150,8 +149,8 @@ describe('Account', () => {
       let bank = new Account({ code: 'asset:bank' });
       await parent.addChild(bank);
 
-      assert.equal((await cash.getBalance()).db, 100);
-      assert.equal((await bank.getBalance()).db, 150);
+      assert.strictEqual((await cash.getBalance()).db, 100);
+      assert.strictEqual((await bank.getBalance()).db, 150);
     });
   });
 });

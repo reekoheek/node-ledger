@@ -1,15 +1,15 @@
-const assert = require('assert');
-const { Transaction } = require('./transaction');
-
 class Account {
-  constructor ({ code, currency = '', parent }, adapter) {
-    assert(code, 'Undefined code');
+  constructor ({ code, name, currency = '', parent }, adapter) {
+    if (!code) {
+      throw new Error('Undefined code');
+    }
 
     this.code = code;
+    this.name = name || code;
     this.currency = currency;
     this.parent = parent;
 
-    this._attachAdapter(adapter);
+    this._attach(adapter);
   }
 
   get attached () {
@@ -17,21 +17,37 @@ class Account {
   }
 
   async addChild (account) {
-    assert(this.attached, 'Detached from adapter');
-    assert(account instanceof Account);
+    if (!this.attached) {
+      throw new Error('Detached from adapter');
+    }
 
-    account._attachAdapter(this.adapter);
+    if (account instanceof Account === false) {
+      throw new Error('Account to add is not an account');
+    }
 
-    await account._disconnect();
-    await account._connect(this);
+    if (account.parent) {
+      throw new Error('Account to add is a child of other account');
+    }
+
+    account._attach(this.adapter);
+
+    await account.setParent(this);
   }
 
   async removeChild (account) {
-    assert(this.attached, 'Detached from adapter');
-    assert(account instanceof Account);
-    assert.equal(account.parent, this.code);
+    if (!this.attached) {
+      throw new Error('Detached from adapter');
+    }
 
-    await account._disconnect();
+    if (account instanceof Account === false) {
+      throw new Error('Child is not an account');
+    }
+
+    if (account.parent !== this.code) {
+      throw new Error('Account to remove is not a child of account');
+    }
+
+    await account.removeParent();
   }
 
   getParent () {
@@ -39,13 +55,15 @@ class Account {
       return;
     }
 
-    return this.adapter.getAccount(this.parent);
+    return this.adapter._get(this.parent);
   }
 
   async getChild (code) {
-    assert(this.attached, 'Detached from adapter');
+    if (!this.attached) {
+      throw new Error('Detached from adapter');
+    }
 
-    let rawAccount = await this.adapter.getAccount(code);
+    let rawAccount = await this.adapter._get(code);
     if (!rawAccount || rawAccount.parent !== this.code) {
       return;
     }
@@ -54,34 +72,33 @@ class Account {
   }
 
   async getChildren () {
-    assert(this.attached, 'Detached from adapter');
+    if (!this.attached) {
+      throw new Error('Detached from adapter');
+    }
 
-    let rawAccounts = await this.adapter.getAccountsByParent(this.code);
+    let rawAccounts = await this.adapter._findByParent(this.code);
     return rawAccounts.map(a => new Account(a, this.adapter));
   }
 
-  async getTransactions () {
-    let { code } = this;
-    let txs = await this.adapter.getTransactions({ code });
-    return Promise.all(txs.map(tx => new Transaction(tx, this.adapter)));
+  getEntries () {
+    return this.adapter._entries({ code: this.code });
   }
 
   getBalance () {
-    return this.adapter.getBalance(this.code);
+    return this.adapter._balance(this.code);
   }
 
-  async _connect (parent) {
+  async setParent (parent) {
     this.parent = parent.code;
-    await this.adapter.connectAccount(this);
+    await this.adapter._connect(this);
   }
 
-  async _disconnect () {
-    if (this.parent) {
-      await this.adapter.disconnectAccount(this);
-    }
+  async removeParent () {
+    await this.adapter._disconnect(this);
+    this.parent = undefined;
   }
 
-  _attachAdapter (adapter) {
+  _attach (adapter) {
     Object.defineProperty(this, 'adapter', {
       configurable: true,
       get: () => adapter,

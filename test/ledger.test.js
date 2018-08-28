@@ -10,19 +10,10 @@ describe('Ledger', () => {
     });
   });
 
-  describe('#init()', () => {
-    it('initialize with empty chart of accounts', async () => {
+  describe('#populate()', () => {
+    it('populate with chart of accounts', async () => {
       let ledger = new Ledger();
-      await ledger.init();
-
-      assert(ledger.initialized);
-      let children = await ledger.getChildren();
-      assert.equal(children.length, 0);
-    });
-
-    it('initialize with chart of accounts', async () => {
-      let ledger = new Ledger();
-      await ledger.init([
+      await ledger.populate([
         {
           code: 'assets',
           children: [
@@ -33,25 +24,25 @@ describe('Ledger', () => {
         { code: 'equity' },
       ]);
 
-      let children = await ledger.getChildren();
-      assert.equal(children.length, 4);
+      let account = await ledger.getAccount('assets');
+      assert.strictEqual(account.name, 'assets');
     });
   });
 
-  describe('#destroy()', () => {
-    it('destroy root account', async () => {
-      let ledger = new Ledger();
-      await ledger.init();
+  // describe('#destroy()', () => {
+  //   it('destroy root account', async () => {
+  //     let ledger = new Ledger();
+  //     await ledger.populate();
 
-      await ledger.destroy();
-      assert(!ledger.initialized);
-    });
-  });
+  //     await ledger.destroy();
+  //     assert(!ledger.initialized);
+  //   });
+  // });
 
   describe('#post()', () => {
     it('post new transaction', async () => {
       let ledger = new Ledger();
-      await ledger.init([
+      await ledger.populate([
         { code: 'cash' },
         { code: 'equity' },
       ]);
@@ -63,8 +54,7 @@ describe('Ledger', () => {
         ],
       });
 
-      assert.equal(ledger.adapter.txs.length, 1);
-      assert.equal(ledger.adapter.entries.length, 2);
+      assert.strictEqual(ledger.adapter.entries.length, 2);
     });
   });
 
@@ -72,14 +62,14 @@ describe('Ledger', () => {
     it('return account by code', async () => {
       let ledger = new Ledger();
 
-      await ledger.init([
+      await ledger.populate([
         { code: 'asset', children: [ { code: 'bank' } ] },
         { code: 'equity' },
         { code: 'expenses' },
       ]);
 
       let bankAccount = await ledger.getAccount('bank');
-      assert.equal(bankAccount.code, 'bank');
+      assert.strictEqual(bankAccount.code, 'bank');
     });
   });
 
@@ -87,7 +77,7 @@ describe('Ledger', () => {
     it('return all transactions', async () => {
       let ledger = new Ledger();
 
-      await ledger.init([
+      await ledger.populate([
         { code: 'cash' },
         { code: 'equity' },
         { code: 'expenses' },
@@ -117,9 +107,8 @@ describe('Ledger', () => {
         ],
       });
 
-      let txs = await ledger.getTransactions();
-      assert.equal(txs.length, 3);
-      assert.equal(txs[0].entries.length, 2);
+      let entries = await ledger.getEntries();
+      assert.strictEqual(entries.length, 6);
     });
   });
 });

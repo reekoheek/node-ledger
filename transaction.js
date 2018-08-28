@@ -13,7 +13,7 @@ class Transaction {
     });
 
     this.trace = trace;
-    this.posted = posted;
+    this.posted = posted || date;
     this.date = date;
     this.desc = desc;
     this.entries = entries.map(({ code, db, cr }) => new Entry({ trace, code, db, cr }, adapter));
@@ -36,14 +36,6 @@ class Transaction {
         throw new Error(`Imbalance DBCR, ${currency}`);
       }
     }
-  }
-
-  async post () {
-    await this.validate();
-
-    this.posted = new Date();
-
-    await this.adapter.post(this);
   }
 }
 

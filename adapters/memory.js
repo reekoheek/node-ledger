@@ -2,15 +2,14 @@
 class Memory {
   constructor () {
     this.accounts = [];
-    this.txs = [];
     this.entries = [];
   }
 
-  connectAccount ({ code, currency, parent }) {
-    this.accounts.push({ code, currency, parent });
+  _connect ({ code, name, currency, parent }) {
+    this.accounts.push({ code, name, currency, parent });
   }
 
-  disconnectAccount ({ code }) {
+  _disconnect ({ code }) {
     let index = this.accounts.findIndex(account => account.code === code);
     if (index === -1) {
       return;
@@ -19,43 +18,35 @@ class Memory {
     this.accounts.splice(index, 1);
   }
 
-  getAccount (code) {
+  _get (code) {
     return this.accounts.find(account => account.code === code);
   }
 
-  getAccountsByParent (parent) {
+  _findByParent (parent) {
     return this.accounts.filter(account => account.parent === parent);
   }
 
-  post ({ trace, posted, date, desc, entries }) {
+  _post ({ trace, posted, date, desc, entries }) {
     entries.forEach(({ code, db, cr }) => {
-      this.entries.push({ trace, code, db, cr });
+      this.entries.push({ trace, posted, date, desc, code, db, cr });
     });
-    this.txs.push({ trace, posted, date, desc });
     return trace;
   }
 
-  getTransactions ({ code } = {}) {
-    let txs = [];
+  _entries ({ code } = {}) {
+    let entries = [];
     this.entries.forEach(entry => {
       if (code && entry.code !== code) {
         return;
       }
 
-      let tx = txs.find(tx => tx.trace === entry.trace);
-      if (!tx) {
-        let { trace, posted, date, desc } = this.txs.find(tx => tx.trace === entry.trace);
-        tx = { trace, posted, date, desc, entries: [] };
-        txs.push(tx);
-      }
-
-      tx.entries.push(entry);
+      entries.push(entry);
     });
 
-    return txs;
+    return entries;
   }
 
-  getBalance (code) {
+  _balance (code) {
     let db = 0;
     let cr = 0;
     this.entries.forEach(entry => {
