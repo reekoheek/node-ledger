@@ -1,13 +1,12 @@
 {
   "name": "node-ledger",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Simple library to work with accounting ledger.",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
     "test": "mocha test/**",
-    "precommit": "npm run lint && npm test",
-    "prepush": "npm run lint && npm test"
+    "precommit": "npm run lint && npm test"
   },
   "repository": {
     "type": "git",
@@ -15,10 +14,6 @@
   },
   "author": "Ganesha <reekoheek@gmail.com> (http://sagara.id)",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/reekoheek/node-ledger.git"
-  },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
     "eslint": "^5.4.0",
