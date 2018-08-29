@@ -59,8 +59,4 @@ describe('Entry', () => {
       await entry.validate();
     });
   });
-
-  describe('#getAccount()', () => {
-    it('return account of entry');
-  });
 });

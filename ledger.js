@@ -10,21 +10,28 @@ class Ledger {
     });
   }
 
-  async populate (accounts = []) {
+  async populate (accounts = [], options) {
     // await this.adapter._connect(this);
-    await this.insertAccounts(this, accounts);
+    await this.insertAccounts(this, accounts, options);
   }
 
-  async post (tx) {
+  async post (tx, options) {
     if (tx instanceof Transaction === false) {
       tx = new Transaction(tx, this.adapter);
     }
-    await tx.validate();
-    await this.adapter._post(tx);
+
+    await tx.validate(options);
+    await this.adapter._post(tx, options);
+    return tx.trace;
   }
 
-  async getAccount (code) {
-    let rawAccount = await this.adapter._get(code);
+  /**
+   * Get account by code
+   *
+   * @param {string} code
+   */
+  async getAccount (code, options) {
+    let rawAccount = await this.adapter._get(code, options);
     if (!rawAccount) {
       return;
     }
@@ -32,19 +39,19 @@ class Ledger {
     return new Account(rawAccount, this.adapter);
   }
 
-  getEntries () {
-    return this.adapter._entries();
+  getEntries (criteria, options) {
+    return this.adapter._entries(criteria, options);
   }
 
-  async insertAccounts (parent, accounts = []) {
+  async insertAccounts (parent, accounts = [], options) {
     for (let def of accounts) {
       let account = new Account(def);
 
       account.parent = parent.code || '';
-      await this.adapter._connect(account);
+      await this.adapter._connect(account, options);
 
       if (def.children && def.children.length) {
-        await this.insertAccounts(account, def.children);
+        await this.insertAccounts(account, def.children, options);
       }
     }
   }

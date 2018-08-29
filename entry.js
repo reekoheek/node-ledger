@@ -1,5 +1,5 @@
 class Entry {
-  constructor ({ trace, code, db = 0, cr = 0 }, adapter) {
+  constructor ({ trace, code, db = 0, cr = 0, param1, param2, param3 }, adapter) {
     if (!code) {
       throw new Error('Undefined account');
     }
@@ -18,6 +18,9 @@ class Entry {
     this.code = code;
     this.db = db;
     this.cr = cr;
+    this.param1 = param1;
+    this.param2 = param2;
+    this.param3 = param3;
   }
 
   get currency () {
@@ -28,15 +31,15 @@ class Entry {
     return this.account.currency;
   }
 
-  async validate () {
-    let account = await this.getAccount();
+  async validate (options) {
+    let account = await this.getAccount(options);
     if (!account) {
-      throw new Error('Invalid account');
+      throw new Error(`Invalid account, ${this.code}`);
     }
   }
 
-  async getAccount () {
-    this.account = await this.adapter._get(this.code);
+  async getAccount (options) {
+    this.account = await this.adapter._get(this.code, options);
     return this.account;
   }
 }

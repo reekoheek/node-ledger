@@ -27,10 +27,9 @@ class Memory {
   }
 
   _post ({ trace, posted, date, desc, entries }) {
-    entries.forEach(({ code, db, cr }) => {
-      this.entries.push({ trace, posted, date, desc, code, db, cr });
+    entries.forEach(({ code, db, cr, param1, param2, param3 }) => {
+      this.entries.push({ trace, posted, date, desc, code, db, cr, param1, param2, param3 });
     });
-    return trace;
   }
 
   _entries ({ code } = {}) {

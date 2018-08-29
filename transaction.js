@@ -2,7 +2,7 @@ const { Entry } = require('./entry');
 const uuidv1 = require('uuid/v1');
 
 class Transaction {
-  constructor ({ trace = uuidv1(), date, desc = '', entries = [], posted } = {}, adapter) {
+  constructor ({ trace = uuidv1(), date, posted, desc = '', entries = [] } = {}, adapter) {
     date = date || new Date();
     if (date instanceof Date === false) {
       date = new Date(date);
@@ -16,17 +16,19 @@ class Transaction {
     this.posted = posted || date;
     this.date = date;
     this.desc = desc;
-    this.entries = entries.map(({ code, db, cr }) => new Entry({ trace, code, db, cr }, adapter));
+    this.entries = entries.map(({ code, db, cr, param1, param2, param3 }) => {
+      return new Entry({ trace, code, db, cr, param1, param2, param3 }, adapter);
+    });
   }
 
-  async validate () {
+  async validate (options) {
     if (this.entries.length < 2) {
       throw new Error('Invalid entries');
     }
 
     let sums = [];
     for (let entry of this.entries) {
-      await entry.validate();
+      await entry.validate(options);
 
       sums[entry.currency] = (sums[entry.currency] || 0) + entry.db - entry.cr;
     }

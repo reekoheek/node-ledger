@@ -16,7 +16,12 @@ class Account {
     return Boolean(this.adapter);
   }
 
-  async addChild (account) {
+  /**
+   * Add child account
+   * @param {Account} account
+   * @param {object} options
+   */
+  async addChild (account, options) {
     if (!this.attached) {
       throw new Error('Detached from adapter');
     }
@@ -31,10 +36,10 @@ class Account {
 
     account._attach(this.adapter);
 
-    await account.setParent(this);
+    await account.setParent(this, options);
   }
 
-  async removeChild (account) {
+  async removeChild (account, options) {
     if (!this.attached) {
       throw new Error('Detached from adapter');
     }
@@ -47,23 +52,23 @@ class Account {
       throw new Error('Account to remove is not a child of account');
     }
 
-    await account.removeParent();
+    await account.removeParent(options);
   }
 
-  getParent () {
+  getParent (options) {
     if (!this.parent || !this.attached) {
       return;
     }
 
-    return this.adapter._get(this.parent);
+    return this.adapter._get(this.parent, options);
   }
 
-  async getChild (code) {
+  async getChild (code, options) {
     if (!this.attached) {
       throw new Error('Detached from adapter');
     }
 
-    let rawAccount = await this.adapter._get(code);
+    let rawAccount = await this.adapter._get(code, options);
     if (!rawAccount || rawAccount.parent !== this.code) {
       return;
     }
@@ -71,30 +76,31 @@ class Account {
     return new Account(rawAccount, this.adapter);
   }
 
-  async getChildren () {
+  async getChildren (options) {
     if (!this.attached) {
       throw new Error('Detached from adapter');
     }
 
-    let rawAccounts = await this.adapter._findByParent(this.code);
+    let rawAccounts = await this.adapter._findByParent(this.code, options);
     return rawAccounts.map(a => new Account(a, this.adapter));
   }
 
-  getEntries () {
-    return this.adapter._entries({ code: this.code });
+  getEntries (criteria, options) {
+    criteria = Object.assign({}, criteria, { code: this.code });
+    return this.adapter._entries(criteria, options);
   }
 
-  getBalance () {
-    return this.adapter._balance(this.code);
+  getBalance (options) {
+    return this.adapter._balance(this.code, options);
   }
 
-  async setParent (parent) {
+  async setParent (parent, options) {
     this.parent = parent.code;
-    await this.adapter._connect(this);
+    await this.adapter._connect(this, options);
   }
 
-  async removeParent () {
-    await this.adapter._disconnect(this);
+  async removeParent (options) {
+    await this.adapter._disconnect(this, options);
     this.parent = undefined;
   }
 
